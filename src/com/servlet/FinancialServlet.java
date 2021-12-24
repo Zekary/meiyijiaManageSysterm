@@ -1,0 +1,139 @@
+package com.servlet;
+
+import com.Dao.Financial;
+import com.Dao.Goods;
+import com.service.FinancialService;
+import com.service.GoodsService;
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+import javax.servlet.annotation.*;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.List;
+public class FinancialServlet extends HttpServlet {
+    //构造方法，不能缺少，不然会报错
+    public FinancialServlet() {
+        super();
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        doPost(request, response);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html; charset=UTF-8");
+        String action = request.getParameter("action");
+        System.out.println(action);
+        try {
+            //获取action业务鉴别字符串，得到相应的业务 方法反射对象
+            Method method = this.getClass().getDeclaredMethod(action, HttpServletRequest.class, HttpServletResponse.class);
+            //调用目标业务，方法
+            method.invoke(this, request, response);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void list(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //1.通过FinancialService查询全部商品
+        //2.把全部商品保存到request域中
+        //3.请求转发到financialmanage.jsp中
+
+        //调用service获取数据库中的表
+        FinancialService financialService = new FinancialService();
+        //从session中获取userid
+        int userid = (int) request.getSession().getAttribute("userid");
+        int grade = (int) request.getSession().getAttribute("grade");
+        //根据userid，从数据库获取数据
+        List<Financial> financiallist = financialService.getFinanciallist(userid,grade);
+        //把goodslist对象存入到request域对象中
+        request.setAttribute("financiallist", financiallist);
+        //请求转发
+        request.getRequestDispatcher("financialmanage.jsp").forward(request, response);
+    }
+
+    protected void add(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //获取form表单的参数，然后封装成goods对象，保存到数据库，然后跳到员工管理页面
+        Financial financial = new Financial();
+        financial.setFinancialid(0);
+        financial.setIncome(Double.parseDouble(request.getParameter("income")));
+        financial.setExpend(Double.parseDouble(request.getParameter("expend")));
+        financial.setProfict(financial.income-financial.expend);
+        financial.setMonth(request.getParameter("month"));
+        financial.setStoreid((int) request.getSession().getAttribute("userid"));
+
+        //调用service函数增加到数据库
+        FinancialService financialService = new FinancialService();
+        financialService.add(financial);
+
+        //重新读取数据库里面的员工数据
+        response.sendRedirect("FinancialServlet?action=list");
+    }
+
+    protected void getf(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //获取图书编号，调用serivice函数对数据进行修改并保存到数据库中，再次读取数据
+        int financialid = Integer.parseInt(request.getParameter("financialid"));
+        //调用service函数对数据进行修改
+        FinancialService financialService = new FinancialService();
+        Financial financial = financialService.getf(financialid);
+
+        //保存到域对象
+        request.setAttribute("financial", financial);
+        //请求转发到update.jsp里面
+        request.getRequestDispatcher("finan_update.jsp").forward(request, response);
+    }
+
+    protected void update(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html; charset=UTF-8");
+        //封装数据
+        Financial financial = new Financial();
+        financial.setFinancialid(Integer.parseInt(request.getParameter("finanid")));
+        financial.setIncome(Double.parseDouble(request.getParameter("income")));
+        financial.setExpend(Double.parseDouble(request.getParameter("expend")));
+        financial.setProfict(financial.income-financial.expend);
+        financial.setMonth(request.getParameter("month"));
+        financial.setStoreid((int) request.getSession().getAttribute("userid"));
+
+        //调用service函数增加到数据库
+        FinancialService financialService = new FinancialService();
+        financialService.update(financial);
+
+        //重新读取数据库里面的员工数据
+        response.sendRedirect("FinancialServlet?action=list");
+    }
+
+    protected void delete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //1.获取请求参数的id
+        int financialid = Integer.parseInt(request.getParameter("financialid"));
+        //2.调用service的deleteemp删除对应的图书
+        FinancialService financialService = new FinancialService();
+        financialService.delete(financialid);
+        //3.重定向会员工管理页面
+        response.sendRedirect("FinancialServlet?action=list");
+    }
+
+    protected void delS (HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //1.获取参数
+        String comp = request.getParameter("comp");
+        String[] strArr = comp.split(",");
+        System.out.println(strArr);
+
+        int[] intArr = new int[strArr.length];  //定义一个长度与上述的字符串数组长度相通的整型数组
+        for(int a=0;a<strArr.length;a++){
+            intArr[a] = Integer.valueOf(strArr[a]);  //然后遍历字符串数组，使用包装类Integer的valueOf方法将字符串转为整型
+        }
+
+        //2.调用service的delS方法删除对应的员工
+        FinancialService financialService = new FinancialService();
+        financialService.deletes(intArr);
+
+        //3.重定向会员工管理页面
+        response.sendRedirect("FinancialServlet?action=list");
+    }
+
+}

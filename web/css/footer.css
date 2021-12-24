@@ -1,0 +1,57 @@
+.footer-wrapper {
+    background-color: #444;
+    min-width: 1140px;
+}
+
+.index-footer {
+    width: 1140px;
+    position: relative;
+    padding: 0 20px;
+    font-size: 14px;
+    line-height: 1.9;
+    display: flex;
+    color: #cbcbd1;
+    white-space: nowrap;
+
+
+
+}
+
+@media (max-width: 768px) {
+    .index-footer {
+        padding: 20px;
+        text-align: center;
+    }
+}
+
+.index-footer .copy-right-text {
+    margin-top: 46px;
+    margin-bottom: 46px;
+    margin-right: 200px;
+    width: 66%;
+}
+
+.index-footer .umooc-logo {
+    text-align: right;
+    margin-top: 35px;
+}
+
+.index-footer .umooc-logo.asia-logo {
+    margin-top: 32px;
+}
+
+.index-footer .logo {
+    margin-top: 2px;
+}
+
+.index-footer .cert-link {
+    margin-right: 10px;
+    color: #cbcbd1;
+    text-decoration: none;
+
+
+}
+
+.index-footer .cert-link:hover {
+    color: #fff;
+}
